@@ -706,7 +706,7 @@ def train(model, train_loader, val_loader, n_epochs):
         train_loss = train_loss / len(train_loader)
         print('Epoch: {} \t Training Loss: {:.6f}'.format(epoch+1, train_loss))
         p, r, f, roc_auc = eval(model, val_loader)
-        print('Epoch: {} \t Validation p: {:.2f}, r:{:.2f}, f: {:.2f}, roc_auc: {:.2f}'
+        print('Epoch: {} \t Validation p: {:.3f}, r:{:.3f}, f: {:.3f}, roc_auc: {:.3f}'
               .format(epoch+1, p, r, f, roc_auc))
 
 
