@@ -163,7 +163,7 @@ def collate_fn(data):
     Outputs:
         x: a tensor of shape (# patiens, max # visits, max # diagnosis codes) of type torch.long
         masks: a tensor of shape (# patiens, max # visits, max # diagnosis codes) of type torch.bool
-        rev_x: same as x but in reversed time. This will be used in our RNN model for masking 
+        rev_x: same as x but in reversed time. This will be used in our RNN model for masking
         rev_masks: same as mask but in reversed time. This will be used in our RNN model for masking
         y: a tensor of shape (# patiens) of type torch.float
 
@@ -212,7 +212,7 @@ print("Length of val dataset:", len(val_dataset))
 
 def load_data(train_dataset, val_dataset, collate_fn):
     '''
-    TODO: Implement this function to return the data loader for  train and validation dataset. 
+    TODO: Implement this function to return the data loader for  train and validation dataset.
     Set batchsize to 32. Set `shuffle=True` only for train dataloader.
 
     Arguments:
@@ -292,7 +292,7 @@ class NaiveRNN(nn.Module):
     def __init__(self, num_codes):
         super().__init__()
         """
-        TODO: 
+        TODO:
             1. Define the embedding layer using `nn.Embedding`. Set `embDimSize` to 128.
             2. Define the RNN using `nn.GRU()`; Set `hidden_size` to 128. Set `batch_first` to True.
             3. Define the linear layers using `nn.Linear()`; Set `output_size` to 1.
@@ -327,7 +327,7 @@ class NaiveRNN(nn.Module):
         Outputs:
             probs: probabilities of shape (batch_size)
 
-        Note that rev_x, rev_masks are passed in as arguments so that we can use the same 
+        Note that rev_x, rev_masks are passed in as arguments so that we can use the same
         training and validation function for both models. You can ignore the them here.
         """
 
@@ -364,7 +364,7 @@ def eval_model(model, val_loader):
         f1: overall f1 score
         roc_auc: overall roc_auc score
 
-    Note that please pass all four arguments to the model so that we can use this function for both 
+    Note that please pass all four arguments to the model so that we can use this function for both
     models. (Use `model(x, masks, rev_x, rev_masks)`.)
 
     HINT: checkout https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics
@@ -403,10 +403,10 @@ def train(model, train_loader, val_loader, n_epochs):
         val_loader: validation dataloader
         n_epochs: total number of epochs
 
-    You need to call `eval_model()` at the end of each training epoch to see how well the model performs 
+    You need to call `eval_model()` at the end of each training epoch to see how well the model performs
     on validation data.
 
-    Note that please pass all four arguments to the model so that we can use this function for both 
+    Note that please pass all four arguments to the model so that we can use this function for both
     models. (Use `model(x, masks, rev_x, rev_masks)`.)
     """
 
@@ -438,17 +438,17 @@ def collate_fn(data):
     Collate the the list of samples into batches. For each patient, you need to pad the diagnosis
     sequences to the sample shape (max # visits, max # diagnosis codes). The padding infomation
     is stored in `mask`.
-    
+
     Arguments:
         data: a list of samples fetched from `CustomDataset`
-        
+
     Outputs:
         x: a tensor of shape (# patiens, max # visits, max # diagnosis codes) of type torch.long
         masks: a tensor of shape (# patiens, max # visits, max # diagnosis codes) of type torch.bool
         rev_x: same as x but in reversed time.
         rev_masks: same as mask but in reversed time.
         y: a tensor of shape (# patiens) of type torch.float
-        
+
     Note that you can obtains the list of diagnosis codes and the list of mortality labels
         using: `sequences, labels = zip(*data)`
     """
@@ -456,14 +456,14 @@ def collate_fn(data):
     sequences, labels = zip(*data)
 
     y = torch.tensor(labels, dtype=torch.float)
-    
+
     num_patients = len(sequences)
     num_visits = [len(patient) for patient in sequences]
     num_codes = [len(visit) for patient in sequences for visit in patient]
 
     max_num_visits = max(num_visits)
     max_num_codes = max(num_codes)
-    
+
     x = torch.zeros((num_patients, max_num_visits, max_num_codes), dtype=torch.long)
     rev_x = torch.zeros((num_patients, max_num_visits, max_num_codes), dtype=torch.long)
     masks = torch.zeros((num_patients, max_num_visits, max_num_codes), dtype=torch.bool)
@@ -474,13 +474,13 @@ def collate_fn(data):
             x[i_patient, j_visit, :l] = torch.tensor(visit, dtype=torch.long)
             masks[i_patient, j_visit, :l].fill_(1)
             """
-            TODO: update rev_x and rev_masks. 
+            TODO: update rev_x and rev_masks.
             """
             # your code here
             m = len(patient)
             rev_x[i_patient, m - j_visit - 1, :l] = torch.tensor(visit, dtype=torch.long)
             rev_masks[i_patient, m - j_visit - 1, :l].fill_(1)
-    
+
     return x, masks, rev_x, rev_masks, y
 
 
@@ -490,26 +490,26 @@ class AlphaAttention(torch.nn.Module):
         super().__init__()
         """
         Define the linear layer `self.a_att` for alpha-attention using `nn.Linear()`;
-        
+
         Arguments:
             hidden_dim: the hidden dimension
         """
-        
+
         self.a_att = nn.Linear(hidden_dim, 1)
 
     def forward(self, g):
         """
         TODO: Implement the alpha attention.
-        
+
         Arguments:
-            g: the output tensor from RNN-alpha of shape (batch_size, seq_length, hidden_dim) 
-        
+            g: the output tensor from RNN-alpha of shape (batch_size, seq_length, hidden_dim)
+
         Outputs:
             alpha: the corresponding attention weights of shape (batch_size, seq_length, 1)
-            
+
         HINT: consider `torch.softmax`
         """
-        
+
         # your code here
         alpha = self.a_att(g)
         alpha = torch.softmax(alpha,1)
@@ -521,27 +521,27 @@ class BetaAttention(torch.nn.Module):
         super().__init__()
         """
         Define the linear layer `self.b_att` for beta-attention using `nn.Linear()`;
-        
+
         Arguments:
             hidden_dim: the hidden dimension
         """
-        
+
         self.b_att = nn.Linear(hidden_dim, hidden_dim)
 
 
     def forward(self, h):
         """
         TODO: Implement the beta attention.
-        
+
         Arguments:
-            h: the output tensor from RNN-beta of shape (batch_size, seq_length, hidden_dim) 
-        
+            h: the output tensor from RNN-beta of shape (batch_size, seq_length, hidden_dim)
+
         Outputs:
             beta: the corresponding attention weights of shape (batch_size, seq_length, hidden_dim)
-            
+
         HINT: consider `torch.tanh`
         """
-        
+
         # your code here
         beta = self.b_att(h)
         beta = torch.tanh(beta)
@@ -560,7 +560,7 @@ def attention_sum(alpha, beta, rev_v, rev_masks):
 
     Outputs:
         c: the context vector of shape (batch_size, hidden_dim)
-        
+
     NOTE: Do NOT use for loop.
     """
 
@@ -579,13 +579,13 @@ def sum_embeddings_with_mask(x, masks):
     Outputs:
         sum_embeddings: the sum of embeddings of shape (batch_size, # visits, embedding_dim)
     """
-    
+
     x = x * masks.unsqueeze(-1)
     x = torch.sum(x, dim = -2)
     return x
 
 class RETAIN(nn.Module):
-    
+
     def __init__(self, num_codes):
         super().__init__()
         # Define the embedding layer using `nn.Embedding`. Set `embDimSize` to 128.
@@ -602,7 +602,7 @@ class RETAIN(nn.Module):
         self.fc = nn.Linear(128, 1)
         # Define the final activation layer using `nn.Sigmoid().
         self.sigmoid = nn.Sigmoid()
-    
+
     def forward(self, x, masks, rev_x, rev_masks):
         """
         Arguments:
@@ -628,7 +628,7 @@ class RETAIN(nn.Module):
         logits = self.fc(c)
         probs = self.sigmoid(logits)
         return probs.squeeze()
-    
+
 
 # load the model here
 retain = RETAIN(num_codes = len(types))
@@ -638,23 +638,23 @@ from sklearn.metrics import precision_recall_fscore_support, roc_auc_score
 
 
 def eval(model, val_loader):
-    
+
     """
     Evaluate the model.
-    
+
     Arguments:
         model: the RNN model
         val_loader: validation dataloader
-        
+
     Outputs:
         precision: overall precision score
         recall: overall recall score
         f1: overall f1 score
         roc_auc: overall roc_auc score
-        
+
     REFERENCE: checkout https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics
     """
-    
+
     model.eval()
     y_pred = torch.LongTensor()
     y_score = torch.Tensor()
@@ -663,7 +663,7 @@ def eval(model, val_loader):
     for x, masks, rev_x, rev_masks, y in val_loader:
         y_logit = model(x, masks, rev_x, rev_masks)
         """
-        TODO: obtain the predicted class (0, 1) by comparing y_logit against 0.5, 
+        TODO: obtain the predicted class (0, 1) by comparing y_logit against 0.5,
               assign the predicted class to y_hat.
         """
         y_hat = None
@@ -672,7 +672,7 @@ def eval(model, val_loader):
         y_score = torch.cat((y_score,  y_logit.detach().to('cpu')), dim=0)
         y_pred = torch.cat((y_pred,  y_hat.detach().to('cpu')), dim=0)
         y_true = torch.cat((y_true, y.detach().to('cpu')), dim=0)
-    
+
     p, r, f, _ = precision_recall_fscore_support(y_true, y_pred, average='binary')
     roc_auc = roc_auc_score(y_true, y_score)
     return p, r, f, roc_auc
@@ -680,20 +680,20 @@ def eval(model, val_loader):
 def train(model, train_loader, val_loader, n_epochs):
     """
     Train the model.
-    
+
     Arguments:
         model: the RNN model
         train_loader: training dataloder
         val_loader: validation dataloader
         n_epochs: total number of epochs
     """
-    
+
     model.train()
     for epoch in range(n_epochs):
         train_loss = 0
         for x, masks, rev_x, rev_masks, y in train_loader:
             optimizer.zero_grad()
-            """ 
+            """
             TODO: calculate the loss using `criterion`, save the output to loss.
             """
             loss = None
