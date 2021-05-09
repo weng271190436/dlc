@@ -1,0 +1,3 @@
+[submodule "time_aware_attention"]
+	path = time_aware_attention
+	url = git@github.com:weng271190436/time_aware_attention.git
