@@ -1,14 +1,12 @@
 # Benchmarking Deep Learning Architectures for predicting Readmission to the ICU and Describing patients-at-Risk
 
-This repository contains code related to the publication:
+These codes were largely borrowed from https://github.com/sebbarb/time_aware_attention
 
-_Benchmarking Deep Learning Architectures for predicting Readmission to the ICU and Describing patients-at-Risk_
+I added 2 simple models: birnn and birnn_attention for my final project
 
-by _Sebastiano Barbieri, James Kemp, Oscar Perez-Concha, Sradha Kotwal, Martin Gallagher, Angus Ritchie, Louisa Jorm_
-
-_Nature Scientific Reports_
-
-https://www.nature.com/articles/s41598-020-58053-z
-
-In case you have any questions, contact me at s.barbieri /AT/ unsw.edu.au
-
+How to run:
+- change `mimic_dir` in `hyperparameters.py` to your MIMIC-III data path
+- create `data_dir` and `log_dir` which are pointed to by `hyperparameters.py`
+- select the model that you want to test in `hyperparameters.py` by uncommenting the appropriate `net_variant =` line
+- `python train.py` to train. After training, the model will be stored in `./logdir/`
+- `python test.py` to test.
